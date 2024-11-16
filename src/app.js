@@ -1,17 +1,25 @@
 const express = require("express");
-// console.log("expreess", express);
 
 const app = express();
-// console.log("app", app);
 
-
-app.use("/hello", (req, res) => {
-  res.send("Hello hello hello Akshay !");
+// This will only handle GET call to /user
+app.get("/user", (req, res) => {
+  res.send({ firstName: "Dharmik", lastName: "Chavda" });
 });
 
+app.post("/user", (req, res) => {
+  // saving data to DB
+  res.send("Data successfully saved to database");
+});
 
+app.delete("/user", (req, res) => {
+  // delete data from DB
+  res.send("Data successfully deleted from database");
+})
+
+// this will match all the HTTP method API call to /test
 app.use("/test", (req, res) => {
-  res.send("Hello from Server1!");
+  res.send("Hello from Server!");
 });
 
 app.listen(8000, () => {
