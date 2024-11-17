@@ -2,6 +2,34 @@ const express = require("express");
 
 const app = express();
 
+app.use(
+  "/user",
+  (req, res, next) => {
+    // Route Handler
+    console.log("Handling the user route");
+    // res.send("Route Handler 1");
+    next();
+  },
+  (req, res, next) => {
+    // Route Handler
+    console.log("Handling the user route 2");
+    // res.send("Route Handler 2");
+    next();
+  },
+  (req, res, next) => {
+    // Route Handler
+    console.log("Handling the user route 3");
+    // res.send("Route Handler 3");
+    next();
+  },
+  (req, res, next) => {
+    // Route Handler
+    console.log("Handling the user route 4");
+    res.send("Route Handler 4");
+    // next();
+  }
+);
+
 // This will only handle GET call to /user
 app.get("/user/:userId/:name/:password", (req, res) => {
   console.log("request param", req.params);
