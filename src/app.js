@@ -2,6 +2,23 @@ const express = require("express");
 
 const app = express();
 
+const { adminAuth, userAuth } = require('./middlewares/auth');
+
+// Handle Auth Middleware for all GET, POST, PUT, DELETE requests
+app.use("/admin", adminAuth);
+
+app.get("/usertest", userAuth, (req, res) => {
+  res.send("user data sent!");
+})
+
+app.get("/admin/getAllData", (req, res) => {
+  res.send("Welcome to Admin Dashboard");
+});
+
+app.get("/admin/deleteUser", (req, res) => {
+  res.send("Deleted a user");
+});
+
 app.use(
   "/user",
   (req, res, next) => {
@@ -46,9 +63,16 @@ app.delete("/user", (req, res) => {
   res.send("Data successfully deleted from database");
 });
 
+app.use("/test", (req, res, next) => {
+  console.log("test route 2");
+  res.send("Hello from Server 2!");
+});
+
 // this will match all the HTTP method API call to /test
-app.use("/test", (req, res) => {
-  res.send("Hello from Server!");
+app.use("/test", (req, res, next) => {
+  console.log("test route");
+  // res.send("Hello from Server!");
+  next();
 });
 
 app.listen(8000, () => {
