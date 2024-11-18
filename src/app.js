@@ -50,7 +50,7 @@ app.get("/feed", async (req, res) => {
 app.delete("/user", async (req, res) => {
   const userId = req.body.userId;
   try {
-    const user = await User.findByIdAndDelete({_id: userId});
+    const user = await User.findByIdAndDelete({ _id: userId });
     // const user = await User.findByIdAndDelete(userId);
     console.log("print delete user", user);
     res.send(user);
@@ -60,20 +60,36 @@ app.delete("/user", async (req, res) => {
 });
 
 // Update data of user
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params?.userId;
   const data = req.body;
+  console.log("print paramse patch value", userId);
   try {
-    const user = await User.findByIdAndUpdate({_id: userId}, data, {
+    const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
+
+    const isUpdatedAllowed = Object.keys(data).every((k) =>
+      ALLOWED_UPDATES.includes(k)
+    );
+    console.log("isUpdatedAllowed", isUpdatedAllowed);
+
+    if (!isUpdatedAllowed) {
+      throw new Error("Update not allowed");
+    }
+
+    if (data?.skills.length > 10) {
+      throw new Error("Skills can't be more than 10");
+    }
+
+    const user = await User.findByIdAndUpdate({ _id: userId }, data, {
       returnDocument: "after",
-      runValidators: true
+      runValidators: true,
     });
     console.log("before print user", user);
-    res.send("User Updated Successfully!")
+    res.send("User Updated Successfully!");
   } catch (error) {
     res.status(400).send("UPDATE FAILED:" + error.message);
   }
-})
+});
 
 connectDB()
   .then(() => {
