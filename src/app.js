@@ -41,9 +41,37 @@ app.get("/feed", async (req, res) => {
     const users = await User.find({});
     console.log(".find get the collection", users);
     res.send(users);
-    
   } catch (error) {
     res.status(400).send("something went wrong");
+  }
+});
+
+// Delete a user from the database
+app.delete("/user", async (req, res) => {
+  const userId = req.body.userId;
+  try {
+    const user = await User.findByIdAndDelete({_id: userId});
+    // const user = await User.findByIdAndDelete(userId);
+    console.log("print delete user", user);
+    res.send(user);
+  } catch (error) {
+    res.status(400).send("something went wrong");
+  }
+});
+
+// Update data of user
+app.patch("/user", async (req, res) => {
+  const userId = req.body.userId;
+  const data = req.body;
+  try {
+    const user = await User.findByIdAndUpdate({_id: userId}, data, {
+      returnDocument: "after",
+      runValidators: true
+    });
+    console.log("before print user", user);
+    res.send("User Updated Successfully!")
+  } catch (error) {
+    res.status(400).send("UPDATE FAILED:" + error.message);
   }
 })
 
