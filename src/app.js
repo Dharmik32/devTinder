@@ -2,18 +2,53 @@ const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
 const User = require("./models/user");
+const { validateSignUpData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  // Create a new instance of the User model
-  const user = new User(req.body);
-
   try {
+    // validation of data
+    validateSignUpData(req);
+
+    const { firstName, lastName, emailId, password } = req.body;
+
+    // Encrypt the password
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Create a new instance of the User model
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
+
     await user.save();
     res.send("User Added Successfully!");
   } catch (error) {
-    res.status(400).send("Error saving the user: " + error.message);
+    res.status(400).send("ERROR : " + error.message);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) {
+      res.send("Login Successful!");
+    } else {
+      throw new Error("Invalid credentials");
+    }
+  } catch (error) {
+    res.status(400).send("ERROR : " + error.message);
   }
 });
 
@@ -26,7 +61,7 @@ app.get("/user", async (req, res) => {
     console.log("print user", user);
 
     if (user.length === 0) {
-      res.send("User not found");
+      res.status(404).send("User not found");
     } else {
       res.send(user);
     }
@@ -68,7 +103,7 @@ app.patch("/user/:userId", async (req, res) => {
     const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
 
     const isUpdatedAllowed = Object.keys(data).every((k) =>
-      ALLOWED_UPDATES.includes(k)
+      ALLOWED_UPDATES.includes(k),
     );
     console.log("isUpdatedAllowed", isUpdatedAllowed);
 
