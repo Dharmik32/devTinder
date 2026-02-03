@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     firstName: {
       type: String,
       required: true,
+      index: true,
       minLength: 3,
       maxLength: 50,
     },
@@ -33,7 +34,7 @@ const userSchema = new mongoose.Schema(
         if (!validator.isStrongPassword(value)) {
           throw new Error("Enter a strong password: " + value);
         }
-      }
+      },
     },
     age: {
       type: Number,
@@ -41,11 +42,15 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      validate(value) {
-        if (!["male", "female", "other"].includes(value)) {
-          throw new Error("Invalid gender");
-        }
+      enum: {
+        values: ["male", "female", "other"],
+        message: `{VALUE} is not a valid gender type`,
       },
+      // validate(value) {
+      //   if (!["male", "female", "other"].includes(value)) {
+      //     throw new Error("Invalid gender");
+      //   }
+      // },
     },
     photoUrl: {
       type: String,
@@ -67,8 +72,11 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
+
+userSchema.index({ firstName: 1 });
+userSchema.index({ gender: 1 });
 
 userSchema.methods.getJWT = async function () {
   const user = this;
@@ -76,13 +84,16 @@ userSchema.methods.getJWT = async function () {
     expiresIn: "7d",
   });
   return token;
-}
+};
 
-userSchema.methods.validatePassword = async function(passwordInputByUser){
+userSchema.methods.validatePassword = async function (passwordInputByUser) {
   const user = this;
   const passwordHash = user.password;
-  const isPasswordValid = await bcrypt.compare(passwordInputByUser, passwordHash);
+  const isPasswordValid = await bcrypt.compare(
+    passwordInputByUser,
+    passwordHash,
+  );
   return isPasswordValid;
-}
+};
 
 module.exports = mongoose.model("User", userSchema);
